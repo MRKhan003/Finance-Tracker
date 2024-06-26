@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_tracker/Widgets/historyList.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -9,7 +10,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int? totalAmount, savingAmount, totalSpending;
-  String? month;
+  String? month, status;
   List<int> spendingAmount = [];
   List<String> purpose = [];
   List<String> days = [];
@@ -20,11 +21,33 @@ class _HomePageState extends State<HomePage> {
     QuerySnapshot snapshot = await data.get();
     print("Execution....");
     snapshot.docs.forEach((doc) {
-      setState(() {
-        totalAmount = doc['Total Amount'];
-        savingAmount = doc['Saving Amount'];
-        month = doc['Current Month'];
-      });
+      if (doc['Status'] == 'Continued') {
+        setState(() {
+          totalAmount = doc['Total Amount'];
+          savingAmount = doc['Saving Amount'];
+          month = doc['Current Month'];
+        });
+      } else {
+        Fluttertoast.showToast(
+          msg: "Start a tracking to show data.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 10,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
+    });
+  }
+
+  Future<void> setData() async {
+    FirebaseFirestore.instance.collection("Roshaan").doc(month).update(
+      {
+        'Status': 'Ended',
+      },
+    ).catchError((error) {
+      print(error);
     });
   }
 
@@ -198,6 +221,22 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ],
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        setData();
+                      },
+                      child: Text(
+                        "End Tracking",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStatePropertyAll(
+                          Colors.red,
+                        ),
+                      ),
                     ),
                   ],
                 ),

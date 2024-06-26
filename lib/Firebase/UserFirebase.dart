@@ -16,6 +16,7 @@ class UserFirebase {
         "Saving Amount": plan.savingPlan,
         "Current Month": plan.month,
         "Plan Starting Time": Timestamp.now(),
+        "Status": "Continued",
       });
       Fluttertoast.showToast(
         msg: "Data added successfully",

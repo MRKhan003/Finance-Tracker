@@ -7,6 +7,7 @@ import 'package:expense_tracker/Widgets/DrawerFields.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class NewExpense extends StatefulWidget {
   @override
@@ -23,7 +24,10 @@ class _NewExpenseState extends State<NewExpense> {
     print("Execution....");
     snapshot.docs.forEach((doc) {
       setState(() {
-        monthName = doc['Current Month'];
+        if (doc['Status'] == 'Continued') {
+          monthName = doc['Current Month'];
+          print(monthName);
+        } else {}
       });
     });
   }
@@ -246,8 +250,26 @@ class _NewExpenseState extends State<NewExpense> {
                               ),
                               child: const Text('Confirm'),
                               onPressed: () {
-                                UserFirebase().SendClientDatatoCollection(
-                                    monthName, track);
+                                if (monthName != null &&
+                                    track.amountUsed != null &&
+                                    track.dateOfMonth != null &&
+                                    track.dayofMonth != null &&
+                                    track.purpose != null) {
+                                  UserFirebase().SendClientDatatoCollection(
+                                    monthName,
+                                    track,
+                                  );
+                                } else {
+                                  Fluttertoast.showToast(
+                                    msg: "Fill all fields.",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.CENTER,
+                                    timeInSecForIosWeb: 10,
+                                    backgroundColor: Colors.green,
+                                    textColor: Colors.white,
+                                    fontSize: 16.0,
+                                  );
+                                }
                               },
                             ),
                           ],

@@ -119,19 +119,39 @@ class _NewTrackingState extends State<NewTracking> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  plan.month = selectedValue;
-                  plan.totalEarnings = int.tryParse(
-                    DrawerFieldControler.incomeController.text,
-                  );
-                  plan.savingPlan = int.parse(
-                    DrawerFieldControler.savingController.text,
-                  );
-                  UserFirebase().SendClientData(plan);
-                  Navigator.pushReplacement(context, MaterialPageRoute(
+                  showDialog(
+                    context: context,
                     builder: (context) {
-                      return HomePage();
+                      return AlertDialog(
+                        title: Text('Confirmation Box'),
+                        content: Text('Have you ended old tracking?'),
+                        actions: <Widget>[
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              textStyle: Theme.of(context).textTheme.labelLarge,
+                            ),
+                            child: const Text('Confirm'),
+                            onPressed: () {
+                              plan.month = selectedValue;
+                              plan.totalEarnings = int.tryParse(
+                                DrawerFieldControler.incomeController.text,
+                              );
+                              plan.savingPlan = int.parse(
+                                DrawerFieldControler.savingController.text,
+                              );
+                              UserFirebase().SendClientData(plan);
+                              Navigator.pushReplacement(context,
+                                  MaterialPageRoute(
+                                builder: (context) {
+                                  return HomePage();
+                                },
+                              ));
+                            },
+                          ),
+                        ],
+                      );
                     },
-                  ));
+                  );
                 },
                 child: const Text(
                   "Save",
