@@ -4,6 +4,7 @@ import 'package:expense_tracker/Firebase/Trackings.dart';
 import 'package:expense_tracker/Firebase/UserInfo.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 
 class UserFirebase {
   FirebaseFirestore ffStore = FirebaseFirestore.instance;
@@ -11,12 +12,18 @@ class UserFirebase {
   UserInfo info = UserInfo();
   Future<bool> SendClientData(FinancePlan plan) async {
     try {
-      await ffStore.collection('Roshaan').doc(plan.month).set({
+      await ffStore
+          .collection('Roshaan')
+          .doc(
+            DateFormat('EEEE d, y ').format(Timestamp.now().toDate()),
+          )
+          .set({
         "Total Amount": plan.totalEarnings,
         "Saving Amount": plan.savingPlan,
         "Current Month": plan.month,
         "Plan Starting Time": Timestamp.now(),
         "Status": "Continued",
+        "Total Spending": 0,
       });
       Fluttertoast.showToast(
         msg: "Data added successfully",

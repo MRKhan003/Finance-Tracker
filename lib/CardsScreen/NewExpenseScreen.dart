@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 
 class NewExpense extends StatefulWidget {
   @override
@@ -17,6 +18,8 @@ class NewExpense extends StatefulWidget {
 class _NewExpenseState extends State<NewExpense> {
   TrackingFinance track = TrackingFinance();
   String? monthName;
+  List<int> spendingAmount = [];
+  int? totalSpending;
   GetDataForExpense() async {
     CollectionReference getMonth =
         FirebaseFirestore.instance.collection('Roshaan');
@@ -29,6 +32,25 @@ class _NewExpenseState extends State<NewExpense> {
           print(monthName);
         } else {}
       });
+    });
+  }
+
+  Future<void> setSpending() async {
+    CollectionReference reference = FirebaseFirestore.instance
+        .collection("Roshaan")
+        .doc(monthName)
+        .collection("Monthly Statement");
+    QuerySnapshot snapshot = await reference.get();
+    snapshot.docs.forEach((doc) {
+      spendingAmount.add(doc['Amount Used']);
+      totalSpending = spendingAmount.reduce((a, b) => a + b);
+    });
+    FirebaseFirestore.instance.collection("Roshaan").doc(monthName).update(
+      {
+        'Total Spending': totalSpending,
+      },
+    ).catchError((error) {
+      print(error);
     });
   }
 
@@ -215,7 +237,9 @@ class _NewExpenseState extends State<NewExpense> {
                   child: DrawerFields(
                     fieldText: "Date/Time",
                     textController: DrawerFieldControler.dateController,
-                    fieldHintText: DateTime.now().toString(),
+                    fieldHintText: DateFormat('EEEE d, y ').format(
+                      Timestamp.now().toDate(),
+                    ),
                   ),
                 ),
                 ElevatedButton(
@@ -255,6 +279,7 @@ class _NewExpenseState extends State<NewExpense> {
                                     track.dateOfMonth != null &&
                                     track.dayofMonth != null &&
                                     track.purpose != null) {
+                                  setSpending();
                                   UserFirebase().SendClientDatatoCollection(
                                     monthName,
                                     track,

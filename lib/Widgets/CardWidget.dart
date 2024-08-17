@@ -1,7 +1,4 @@
-import 'package:expense_tracker/Home%20Page/home.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class CardWidget extends StatelessWidget {
   String cardName;

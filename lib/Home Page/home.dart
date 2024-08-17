@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_tracker/Widgets/historyList.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -15,29 +16,29 @@ class _HomePageState extends State<HomePage> {
   List<String> purpose = [];
   List<String> days = [];
   List<String> dates = [];
+  int size = 100;
+  @override
+  void initState() {
+    super.initState();
+    GetData();
+  }
 
   Future<void> GetData() async {
     CollectionReference data = FirebaseFirestore.instance.collection('Roshaan');
     QuerySnapshot snapshot = await data.get();
     print("Execution....");
     snapshot.docs.forEach((doc) {
-      if (doc['Status'] == 'Continued') {
+      if (doc['Status'] == 'Continued' && size != totalAmount) {
         setState(() {
           totalAmount = doc['Total Amount'];
           savingAmount = doc['Saving Amount'];
           month = doc['Current Month'];
+          totalSpending = doc['Total Spending'];
         });
-      } else {
-        Fluttertoast.showToast(
-          msg: "Start a tracking to show data.",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 10,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
       }
+      setState(() {
+        size = totalAmount!;
+      });
     });
   }
 
@@ -62,7 +63,7 @@ class _HomePageState extends State<HomePage> {
       days.add(doc['Day of the month']);
       dates.add(doc['Date of the month']);
       purpose.add(doc['Purpose of Use']);
-      totalSpending = spendingAmount.reduce((a, b) => a + b);
+      //totalSpending = spendingAmount.reduce((a, b) => a + b);
     });
     print(totalSpending);
   }
@@ -261,28 +262,38 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              FutureBuilder(
-                future: GetDataFromSubDirectory(),
-                builder: (context, snapshot) {
-                  return Expanded(
-                    child: ListView.builder(
-                      itemCount: purpose.length,
-                      itemBuilder: (context, index) {
-                        return Column(
-                          children: [
-                            HistoryList(
-                              amount: spendingAmount[index],
-                              purpose: purpose[index],
-                              dates: dates[index],
-                              days: days[index],
-                              month: month,
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  );
-                },
+              Skeletonizer(
+                enabled: false,
+                child: FutureBuilder(
+                  future: GetDataFromSubDirectory(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasData || totalAmount != null) {
+                      return Expanded(
+                        child: ListView.builder(
+                          itemCount: purpose.length,
+                          itemBuilder: (context, index) {
+                            return Column(
+                              children: [
+                                HistoryList(
+                                  amount: spendingAmount[index],
+                                  purpose: purpose[index],
+                                  dates: dates[index],
+                                  days: days[index],
+                                  month: month,
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      );
+                    } else {
+                      return Text(
+                          "No data, Please start a tracking. Or reload the page.");
+                    }
+                  },
+                ),
               )
             ],
           ),
